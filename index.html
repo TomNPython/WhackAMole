@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Whack A Mole!</title>
+  <link href='https://fonts.googleapis.com/css?family=Amatic+SC:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>Whack-a-mole! Score: <span class="score">0</span><span> HighScore:</span>
+    <span class='highscore'></span></h1>
+  <button onClick="startGame(1)">Start! (Easy)</button>
+  <button onClick="startGame(2)">Start! (Hard)</button>
+
+
+  <div class="game">
+    <div class="hole hole1">
+      <div class="mole"></div>
+    </div>
+    <div class="hole hole2">
+      <div class="mole"></div>
+    </div>
+    <div class="hole hole3">
+      <div class="mole"></div>
+    </div>
+    <div class="hole hole4">
+      <div class="mole"></div>
+    </div>
+    <div class="hole hole5">
+      <div class="mole"></div>
+    </div>
+    <div class="hole hole6">
+      <div class="mole"></div>
+    </div>
+  </div>
+
+<script>
+  const holes = document.querySelectorAll('.hole');
+  const scoreBoard = document.querySelector('.score');
+  const moles = document.querySelectorAll('.mole');
+  let lastHole
+  let timeUp = false
+  let score = 0
+  let canPlay = true
+  let highScore = JSON.parse(localStorage.getItem('highScore')) || 0
+  document.querySelector('.highscore').textContent = highScore
+
+  function randomTime(min, max) {
+    return Math.round(Math.random() * (max - min) + min)
+  }
+
+  function randomHole(holes) {
+    const idx = Math.floor(Math.random() * holes.length)
+    const hole = holes[idx]
+    if (hole === lastHole) {
+      return randomHole(holes)
+    }
+    lastHole = hole
+    return hole
+  }
+
+  function peep(difficulty) {
+      const time = randomTime(200, difficulty)
+      const hole = randomHole(holes)
+      hole.classList.add('up')
+      setTimeout(() => {
+        hole.classList.remove('up')
+        if (!timeUp) {
+          peep(difficulty)
+        }
+      }, time)
+  }
+
+  function startGame(diff) {
+    if (canPlay) {
+      canPlay = false
+      scoreBoard.textContent = 0
+      timeUp = false
+      score = 0
+      if (diff == 1) {
+        peep(2000)
+      } else if (diff == 2) {
+        peep(1000)
+      }
+      setTimeout(() => {
+        timeUp = true
+        canPlay = true
+        console.log(score)
+        if (score > highScore) {
+        localStorage.setItem('highScore', score)
+        }
+        highScore = localStorage.getItem('highScore')
+        document.querySelector('.highscore').textContent = ` ${highScore}`
+      }, 10000)
+    }
+  }
+
+  function bonk(e) {
+    if (!e.isTrusted) return
+    score++
+    this.parentNode.classList.remove('up')
+    scoreBoard.textContent = score
+  }
+
+  moles.forEach(mole => mole.addEventListener('click', bonk))
+
+  /* Fixed:
+      - stopped multiple start games overlapping, can only start one game now
+      - localstorage highscore
+      - added easy/hard modes
+  */
+
+</script>
+</body>
+</html>
